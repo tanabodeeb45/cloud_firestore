@@ -18,16 +18,16 @@ const app = express();
 app.use(cors({ origin: true }));
 app.use(express.json());
 
-app.get("/api/v1/health/ready", (req, res) => {
+app.get("/v1/health/ready", (req, res) => {
   res
     .status(200)
     .json({ status: HealthStatus.OK, service: "blhs-classroom-function" });
 });
 
-app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/teacher", teacherRoutes);
-app.use("/api/v1/student", studentRoutes);
-app.use("/api/v1/internal", internalRoutes);
+app.use("/v1/auth", authRoutes);
+app.use("/v1/teacher", teacherRoutes);
+app.use("/v1/student", studentRoutes);
+app.use("/v1/internal", internalRoutes);
 
 // Global Error Handler must be the last middleware
 app.use(globalErrorHandler);

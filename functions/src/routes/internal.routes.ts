@@ -9,7 +9,7 @@ const router = Router();
 
 const apiKeyGuard = (req: Request, res: Response, next: NextFunction): void => {
   const apiKey = req.header("X-API-Key");
-  const validKey = process.env.INTERNAL_API_KEY || "mock-secret-key-for-dev";
+  const validKey = process.env.INTERNAL_API_KEY;
 
   if (!apiKey || apiKey !== validKey) {
     throw new AppError("Forbidden: Invalid API Key", 403);
@@ -22,7 +22,7 @@ router.get(
   apiKeyGuard,
   internalStudentContentSchema,
   validateRequest,
-  asyncHandler(internalController.getStudentContent)
+  asyncHandler(internalController.getStudentContent),
 );
 
 export default router;
