@@ -20,19 +20,26 @@ function getOAuthClient() {
 
 export function getAuthUrl(role: UserRole, blhsUserId: string): string {
   const oauth2Client = getOAuthClient();
+
+  const commonScopes = [
+    "https://www.googleapis.com/auth/classroom.courses.readonly",
+    "https://www.googleapis.com/auth/classroom.topics.readonly",
+    "https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly",
+    "https://www.googleapis.com/auth/classroom.coursework.me.readonly", // สำหรับวิชาที่เรียน
+    "https://www.googleapis.com/auth/classroom.coursework.students.readonly", // สำหรับวิชาที่สอน
+    "https://www.googleapis.com/auth/userinfo.email",
+    "openid",
+  ];
+
   const scopes =
     role === UserRole.TEACHER
       ? [
-          "https://www.googleapis.com/auth/classroom.courses.readonly",
+          ...commonScopes,
           "https://www.googleapis.com/auth/classroom.courseworkmaterials",
           "https://www.googleapis.com/auth/classroom.coursework.students",
-          "https://www.googleapis.com/auth/userinfo.email",
+          "https://www.googleapis.com/auth/classroom.announcements",
         ]
-      : [
-          "https://www.googleapis.com/auth/classroom.courses.readonly",
-          "https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly",
-          "https://www.googleapis.com/auth/userinfo.email",
-        ];
+      : commonScopes;
 
   const state = Buffer.from(JSON.stringify({ role, blhsUserId })).toString(
     "base64",
@@ -92,12 +99,10 @@ export async function getValidAccessToken(blhsUserId: string): Promise<string> {
   const tokenExpiry = data.token_expiry ? data.token_expiry.toDate() : null;
   const now = new Date();
 
-  // If token is still valid (more than 5 mins before expiry), return it
   if (!tokenExpiry || tokenExpiry.getTime() - now.getTime() >= 5 * 60 * 1000) {
     return accessToken;
   }
 
-  // Need refresh
   if (!data.refresh_token) {
     throw new AppError(
       "Token expired and no refresh token available. User must re-authenticate.",
@@ -124,7 +129,10 @@ export async function getValidAccessToken(blhsUserId: string): Promise<string> {
     return newAccessToken || "";
   } catch (error) {
     console.error("Failed to refresh access token:", error);
-    throw new AppError("Failed to refresh token. User must re-authenticate.", 401);
+    throw new AppError(
+      "Failed to refresh token. User must re-authenticate.",
+      401,
+    );
   }
 }
 
