@@ -10,6 +10,17 @@ import internalRoutes from "./routes/internal.routes";
 import { HealthStatus } from "./types/enums";
 import { globalErrorHandler } from "./middlewares/error.middleware";
 
+const SECRET_NAME = "blhs-googleclassroom-dev-env";
+if (process.env[SECRET_NAME]) {
+  try {
+    const secrets = JSON.parse(process.env[SECRET_NAME] as string);
+    Object.assign(process.env, secrets);
+    console.log("Successfully loaded configurations from Secret Manager.");
+  } catch (error) {
+    console.error("Failed to parse secret JSON from Secret Manager:", error);
+  }
+}
+
 if (!admin.apps.length) {
   admin.initializeApp();
 }
@@ -37,6 +48,7 @@ export const api = onRequest(
     region: "asia-southeast1",
     memory: "512MiB",
     concurrency: 80,
+    secrets: [SECRET_NAME],
   },
   app,
 );
